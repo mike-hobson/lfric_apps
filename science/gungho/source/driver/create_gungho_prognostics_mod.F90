@@ -90,10 +90,10 @@ contains
     if (topology == topology_fully_periodic.and. &
         geometry == geometry_planar) then
       call proc%apply(make_spec('u', main%none, W2, order_h=ord_h, order_v=ord_v,&
-                              ckp=.true., legacy=legacy))
+                              ckp=.true., legacy=.true.))
     else
       call proc%apply(make_spec('u', main%none, W2, order_h=ord_h, order_v=ord_v,&
-                              ckp=.true., legacy=.true.))
+                              ckp=.true., legacy=legacy))
       call proc%apply(make_spec('h_u', main%none, W2H, order_h=ord_h, &
                                 order_v=ord_v, ckp=.true., legacy=legacy))
       call proc%apply(make_spec('v_u', main%none, W2V, order_h=ord_h, &
