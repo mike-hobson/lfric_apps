@@ -219,14 +219,36 @@ contains
 
     character(20), parameter :: operation = 'once'
 
-    if (spec%ckp .and. space_has_xios_io(spec%space, spec%legacy)) then
-      if (checkpoint_write) then
+! JMH: Temporary fix to read legacy and write layered.
+! The main if-test covers calls to ad_field for both read and write
+! Add a special clause to allow the reading of "u" - even though you
+! wouln't normally in layered mode
+    if (spec%ckp .and. space_has_xios_io(spec%space, spec%legacy).or. &
+        trim(spec%name)=="u") then
+! JMH: but don't call add_field for writing "u"
+      if (checkpoint_write .and. trim(spec%name)/="u") then
         call add_field(self%ckp_out, spec%name, mode=CHECKPOINTING, &
           operation=operation, id_as_name=.true., legacy=spec%legacy)
       end if
-      if (checkpoint_read .or. init_option == init_option_checkpoint_dump) &
-        call add_field(self%ckp_inp, spec%name, mode=RESTARTING, &
-          operation=operation, id_as_name=.true., legacy=spec%legacy)
+      if (checkpoint_read .or. init_option == init_option_checkpoint_dump) then
+! JMH: For the specific dynamics fields that are held a legacy, call add_field
+! for a legacy field
+        if(trim(spec%name)=="theta" .or. trim(spec%name)=="u" .or. &
+           trim(spec%name)=="rho" .or. trim(spec%name)=="exner" .or. &
+           spec%name(1:2)=="m_")then
+          call add_field(self%ckp_inp, spec%name, mode=RESTARTING, &
+            operation=operation, id_as_name=.true., legacy=.true.)
+! JMH: For all other fields, call add_field with the default legacy flag
+! but don't add the split "u" fields - as they're not in a legacy file.
+! This will break layered reading
+! Todo: need to be able to read both legacy and layered in the future
+        else
+          if(trim(spec%name)/="h_u" .and. trim(spec%name)/="v_u")then
+            call add_field(self%ckp_inp, spec%name, mode=RESTARTING, &
+              operation=operation, id_as_name=.true., legacy=spec%legacy)
+          end if
+        end if
+      end if
     end if
 
   end subroutine persistor_apply

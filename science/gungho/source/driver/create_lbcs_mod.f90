@@ -56,7 +56,11 @@ module create_lbcs_mod
       character(str_def) :: name
       logical(l_def) :: legacy
 
-      legacy = .true.
+! JMH: Temporary fix to read legacy and write layered.
+! This is a marker to remind me to sort out the LBC fields. At the moment,
+! don't read/write any LBC fields as "legacy". In the future I'll have to
+! be able to read "legacy" and write "layered" for all LBC fields
+      legacy = .false.
 
       select case( lbc_option )
 
