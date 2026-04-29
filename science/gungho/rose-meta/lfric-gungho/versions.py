@@ -41,3 +41,15 @@ class vn31_t118(MacroUpgrade):
         # Commands From: rose-meta/lfric-gungho
         # Blank Upgrade Macro
         return config, self.reports
+
+
+class vn31_t77(MacroUpgrade):
+    """Upgrade macro for issue #77 by Mike Hobson."""
+
+    BEFORE_TAG = "vn3.1_t118"
+    AFTER_TAG = "vn3.1_t77"
+
+    def upgrade(self, config, meta_config=None):
+        # Add settings
+        self.add_setting(config, ["namelist:io", "write_initial"], ".true.")
+        return config, self.reports
