@@ -709,7 +709,11 @@ subroutine create_model_data( modeldb,      &
         call read_checkpoint( prognostic_fields,                    &
                               modeldb%clock%get_first_step() - 1,   &
                               checkpoint_stem_name )
-        call combine_complex_prognostics( prognostic_fields )
+! JMH: Temporary fix to read legacy and write layered.
+! This needs to be thought about better. For now, a "legacy" style checkpoint
+! doesn't have split "u" fields - so they don't need to be combined together.
+! Todo: need to be able to read both legacy and layered in the future
+!        call combine_complex_prognostics( prognostic_fields )
 
         ! Update factors for moist dynamics
         call moist_dyn_factors_alg( moist_dyn_array%bundle, &

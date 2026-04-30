@@ -219,11 +219,16 @@ end function has_xios_io
             log_level_error)
         end select
       end if
+! JMH: Temporary fix to read legacy and write layered.
+! When reading a legacy checkpoint, the split "u" fields won't be
+! enabled - so don't do a sanity check on them
+      if(trim(spec%name)/="h_u" .and. trim(spec%name)/="v_u")then
       if (checkpoint_read .or. init_option == init_option_checkpoint_dump) then
           if (.not. field_is_valid('restart_' // trim(spec%name))) then
             call log_event('restart field not enabled for ' &
               // trim(spec%name), log_level_error)
           end if
+      end if
       end if
     end if
 
@@ -342,6 +347,7 @@ end function has_xios_io
     type(function_space_type), pointer             :: window_size_space
     logical(l_def)                                 :: checkpointed
     logical(l_def)                                 :: advected
+    logical(l_def)                                 :: legacy_read
 
     ! pointers for xios write interface
     procedure(write_interface), pointer :: write_behaviour => null()
@@ -413,13 +419,17 @@ end function has_xios_io
     end if
 
     ! Set read and write behaviour
+! JMH: Temporary fix to read legacy and write layered.
+! Hard code the reading of "u" to legacy mode - otherwise use the default mode
+legacy_read=legacy
+if(trim(name)=='u')legacy_read=.true.
     if (use_xios_io) then
         write_behaviour => write_field_generic
         read_behaviour  => read_field_generic
         if (has_xios_io(vector_space, legacy) &
             .and. (write_diag .or. (checkpoint_write .and. checkpointed))) &
           call new_field_ptr%set_write_behaviour(write_behaviour)
-        if (has_xios_io(vector_space, legacy) &
+        if (has_xios_io(vector_space, legacy_read) &
             .and. (checkpoint_read .or. init_option == init_option_checkpoint_dump) &
             .and. checkpointed) &
           call new_field_ptr%set_read_behaviour(read_behaviour)
