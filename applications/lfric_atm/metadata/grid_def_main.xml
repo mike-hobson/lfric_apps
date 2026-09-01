@@ -113,12 +113,15 @@
   </grid>
 
   <grid id="scalar_grid">
+    <domain domain_ref="scalar"/>
     <axis axis_ref="scalar_axis"/>
   </grid>
   <grid id="random_seed_grid">
+    <domain domain_ref="scalar"/>
     <axis axis_ref="random_seed_size"/>
   </grid>
   <grid id="stochastic_physics_grid">
+    <domain domain_ref="scalar"/>
     <axis axis_ref="stph_spectral_dimensions"/>
   </grid>
   <!-- Zoom filters -->
