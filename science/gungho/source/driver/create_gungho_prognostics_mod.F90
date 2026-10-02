@@ -58,15 +58,16 @@ contains
   !> at different times. The enabling of checkpoint fields has to happen
   !> before the io context closes, and this is too early for field creation.
   !> @param  proc Processor to be applied to selected field specifiers
-  subroutine process_gungho_prognostics(proc)
+  !> @param[in] legacy Flag for using legacy checkpoint format
+  subroutine process_gungho_prognostics(proc, legacy)
     use field_spec_mod,            only : main => main_coll_dict, &
                                           adv => adv_coll_dict
     implicit none
 
     class(processor_type) :: proc
+    logical(l_def), intent(in) :: legacy
     class(clock_type), pointer :: clock
     integer(i_def) :: imr, reference_reset_freq, ord_h, ord_v
-    logical(l_def) :: legacy
     logical(l_def) :: checkpoint_flag
     logical(l_def) :: is_empty
     real(r_def)    :: dt
@@ -77,18 +78,15 @@ contains
     ord_h = element_order_h
     ord_v = element_order_v
 
-    ! enable/disable legacy checkpointing
-    legacy = .true.
-
     call proc%apply(make_spec('theta', main%none, Wtheta, order_h=ord_h, &
                               order_v=ord_v, ckp=.true., legacy=legacy))
     call proc%apply(make_spec('u', main%none, W2, order_h=ord_h, order_v=ord_v,&
                               ckp=.true., legacy=legacy))
     if (.not. legacy) then
       call proc%apply(make_spec('h_u', main%none, W2H, order_h=ord_h, &
-                                order_v=ord_v, ckp=.true.))
+                                order_v=ord_v, ckp=.true., legacy=legacy))
       call proc%apply(make_spec('v_u', main%none, W2V, order_h=ord_h, &
-                                order_v=ord_v, ckp=.true.))
+                                order_v=ord_v, ckp=.true., legacy=legacy))
     end if
     call proc%apply(make_spec('rho', main%none, W3, order_h=ord_h, &
                               order_v=ord_v, ckp=.true., legacy=legacy))
@@ -164,10 +162,12 @@ contains
   !> @param[in]    twod_mesh  The current 2d mesh
   !> @param[in]    mapper     Provides access to the field collections
   !> @param[in]    clock      The model clock
+  !> @param[in]    legacy     Flag for using legacy checkpoint format
   subroutine create_gungho_prognostics(mesh,                                  &
                                        twod_mesh,                             &
                                        mapper,                                &
-                                       clock)
+                                       clock,                                 &
+                                       legacy)
 
     implicit none
 
@@ -175,6 +175,7 @@ contains
     type(mesh_type), intent(in), pointer      :: twod_mesh
     type( field_mapper_type ), intent(in)     :: mapper
     class( clock_type ), intent(in)           :: clock
+    logical(l_def), intent(in)                :: legacy
 
     type( field_maker_type ) :: creator
 
@@ -182,7 +183,7 @@ contains
 
     call creator%init(mesh, twod_mesh, mapper, clock)
 
-    call process_gungho_prognostics(creator)
+    call process_gungho_prognostics(creator, legacy)
 
   end subroutine create_gungho_prognostics
 

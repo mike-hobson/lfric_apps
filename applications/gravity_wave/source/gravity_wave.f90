@@ -40,6 +40,7 @@ program gravity_wave
   call parse_command_line( filename )
 
   call modeldb%config%initialise( program_name )
+  call modeldb%values%initialise( 'values', 5 )
 
   modeldb%mpi => global_mpi
 

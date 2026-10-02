@@ -42,6 +42,7 @@ program transport
   call init_comm( program_name, modeldb )
 
   call modeldb%config%initialise( program_name )
+  call modeldb%values%initialise( 'values', 5 )
 
   call init_config( filename, transport_required_namelists, &
                     config=modeldb%config )

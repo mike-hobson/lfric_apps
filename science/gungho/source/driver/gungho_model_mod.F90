@@ -251,7 +251,8 @@ contains
   !>        set up scaled diagnostics fields
   !> @param[in] config       Argument providing access to model configuration
   !> @param[in] clock        The clock providing access to time information
-  subroutine before_context_close(config,clock)
+  !> @param[in] legacy       Flag for using legacy checkpoint format
+  subroutine before_context_close(config,clock,legacy)
 
     use multidata_field_dimensions_mod, only: sync_multidata_field_dimensions
     use time_dimensions_mod,            only: sync_time_dimensions
@@ -269,6 +270,7 @@ contains
     implicit none
     type(config_type), intent(in)  :: config
     class(clock_type), intent(in)  :: clock
+    logical(l_def),    intent(in)  :: legacy
 
     type(persistor_type) :: persistor
     real(r_second)       :: DT
@@ -292,7 +294,7 @@ contains
     end if
 
     call persistor%init(clock)
-    call process_gungho_prognostics(persistor)
+    call process_gungho_prognostics(persistor,legacy)
     ! Add the temperature_correction_rate to the appropriate files
     if(checkpoint_write) then
       if ( encorr_usage /= encorr_usage_none ) then

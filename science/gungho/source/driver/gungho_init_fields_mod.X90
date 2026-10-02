@@ -386,6 +386,8 @@ subroutine create_model_data( modeldb,           &
 
     integer(i_def) :: theta_forcing
     integer(i_def) :: wind_forcing
+
+    logical(l_def), pointer :: legacy
     !-------------------------------------------------------------------------
     ! Select how to initialize model prognostic fields
     !-------------------------------------------------------------------------
@@ -510,11 +512,14 @@ subroutine create_model_data( modeldb,           &
                             lbc_fields,                               &
                             model_axes )
 
+    call modeldb%values%get_value( 'legacy_chkpnt', legacy )
+
     ! Create gungho prognostics and auxiliary (diagnostic) fields
     call create_gungho_prognostics( mesh,                             &
                                     twod_mesh,                        &
                                     field_mapper,                     &
-                                    modeldb%clock )
+                                    modeldb%clock,                    &
+                                    legacy )
 
     if (limited_area) then
       call create_lbc_fields( mesh, twod_mesh, field_mapper, modeldb%clock )

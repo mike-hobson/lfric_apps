@@ -10,14 +10,15 @@
 !>
 module gungho_setup_io_mod
 
-  use constants_mod,             only: r_def, i_def, str_def, &
+  use constants_mod,             only: r_def, i_def, l_def, str_def, &
                                        str_max_filename, r_second
   use driver_modeldb_mod,        only: modeldb_type
   use file_mod,                  only: FILE_MODE_READ, &
                                        FILE_MODE_WRITE
   use lfric_xios_file_mod,       only: lfric_xios_file_type, &
                                        OPERATION_TIMESERIES, &
-                                       CONVENTION_CF
+                                       CONVENTION_CF,        &
+                                       CONVENTION_UGRID
   use lfric_xios_write_mod,      only: create_checkpoint_list
   use linked_list_mod,           only: linked_list_type
   use log_mod,                   only: log_event, log_level_error, &
@@ -216,6 +217,11 @@ module gungho_setup_io_mod
 
     integer(i_def)                  :: theta_forcing
     integer(i_def)                  :: wind_forcing
+
+    integer(i_def)                  :: convention
+
+    logical(l_def), pointer         :: legacy
+
     ! Only proceed if XIOS is being used for I/O
     if (.not. use_xios_io) return
 
@@ -843,6 +849,14 @@ module gungho_setup_io_mod
                                                          io_mode=FILE_MODE_READ ) )
     endif
 
+    call modeldb%values%get_value( 'legacy_chkpnt', legacy )
+
+    if(legacy)then
+      convention=CONVENTION_CF
+    else
+      convention=CONVENTION_UGRID
+    end if
+
     ! Setup checkpoint writing context information
     if (checkpoint_write) then
       call create_checkpoint_list( modeldb%clock, checkpoint_times, &
@@ -888,7 +902,7 @@ module gungho_setup_io_mod
                                                              io_mode=FILE_MODE_WRITE,               &
                                                              freq=time_point,                       &
                                                              field_group_id="checkpoint_fields",    &
-                                                             file_convention=CONVENTION_CF) )
+                                                             file_convention=convention) )
 
         end do
       else
@@ -912,7 +926,7 @@ module gungho_setup_io_mod
                                                          io_mode=FILE_MODE_READ,          &
                                                          freq=ts_start - 1,               &
                                                          field_group_id="checkpoint_fields",    &
-                                                         file_convention=CONVENTION_CF ) )
+                                                         file_convention=convention ) )
     end if
 
     ! Read checkpoint file as though it were start dump
@@ -925,7 +939,7 @@ module gungho_setup_io_mod
                                                          xios_id="lfric_checkpoint_read", &
                                                          io_mode=FILE_MODE_READ,          &
                                                          field_group_id="checkpoint_fields",    &
-                                                         file_convention=CONVENTION_CF ) )
+                                                         file_convention=convention ) )
     end if
 
   end subroutine init_gungho_files
